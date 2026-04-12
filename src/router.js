@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import HomePage from '@/views/HomePage.vue'
+import GaragePage from '@/views/GaragePage.vue'
 
 const routes = [
   {
@@ -9,13 +10,9 @@ const routes = [
     component: HomePage,
   },
   {
-    path: '/other',
-    name: 'other',
-    component: () => import('@/views/OtherPage.vue'),
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/',
+    path: '/garage',
+    name: 'garage',
+    component: GaragePage,
   },
 ]
 

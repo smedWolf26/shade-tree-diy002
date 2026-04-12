@@ -4,18 +4,12 @@ const linkClass =
 </script>
 
 <template>
-  <nav class="flex justify-center gap-4">
+  <nav class="flex justify-center gap-4 bg-zinc-900 text-3xl font-black tracking-tight text-white">
     <RouterLink
       to="/"
       :class="linkClass"
     >
-      Home
-    </RouterLink>
-    <RouterLink
-      to="/other"
-      :class="linkClass"
-    >
-      Other
+      Home Page
     </RouterLink>
   </nav>
 </template>
