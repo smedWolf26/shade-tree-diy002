@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomePage from '@/views/HomePage.vue'
 import GaragePage from '@/views/GaragePage.vue'
+import MaintenancePage from './views/MaintenancePage.vue'
+import UpcomingPage from './views/UpcomingPage.vue'
 
 const routes = [
   {
@@ -13,6 +15,16 @@ const routes = [
     path: '/garage',
     name: 'garage',
     component: GaragePage,
+  },
+  {
+    path: '/maintenance/:id',
+    name: 'maintenance',
+    component: MaintenancePage,
+  },
+  {
+    path: '/upcoming',
+    name: 'upcoming',
+    component: UpcomingPage,
   },
 ]
 

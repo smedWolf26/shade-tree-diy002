@@ -22,9 +22,33 @@ const router = useRouter()
       >
         <div>
           <h2 class="text-2xl font-bold text-white">My Garage</h2>
-          <p class="text-sm text-zinc-400">View and manage your vehicles</p>
+          <p class="text-lg text-zinc-400">View and manage your vehicles</p>
         </div>
         <span class="text-3xl">🚗</span>
+      </button>
+
+      <button
+        type="button"
+        class="flex items-center justify-between rounded-2xl border border-zinc-700 bg-zinc-800 px-6 py-5 text-left transition hover:bg-zinc-700 hover:shadow-lg hover:shadow-blue-500/40 active:scale-95"
+        @click="router.push('/garage')"
+      >
+        <div>
+          <h2 class="text-2xl font-bold text-white">Maintenance</h2>
+          <p class="text-sm text-zinc-400">View service history</p>
+        </div>
+        <span class="text-3xl">🔩</span>
+      </button>
+
+      <button
+        type="button"
+        class="flex items-center justify-between rounded-2xl border border-zinc-700 bg-zinc-800 px-6 py-5 text-left transition hover:bg-zinc-700 hover:shadow-lg hover:shadow-blue-500/40 active:scale-95"
+        @click="router.push('/upcoming')"
+      >
+        <div>
+          <h2 class="text-2xl font-bold text-white">Upcoming Services</h2>
+          <p class="text-sm text-zinc-400">What is due</p>
+        </div>
+        <span class="text-3xl">🕐</span>
       </button>
     </div>
   </main>

@@ -3,8 +3,8 @@
     <header class="mb-12 flex items-center justify-center gap-3">
       <div class="text-center">
         <h1 class="text-3xl font-black tracking-tight text-white">SHADE TREE DIY</h1>
-        <h1 class="text-3xl font-black tracking-tight text-white">GARAGE</h1>
-        <p class="text-lg text-zinc-400">Manage your Vehicles</p>
+        <h1 class="text-3xl font-black tracking-tight text-white">Maintenance</h1>
+        <p class="text-lg text-zinc-400">Log your Maintenace</p>
       </div>
       <span class="text-5xl">🔧</span>
     </header>
