@@ -34,7 +34,7 @@ const router = useRouter()
       >
         <div>
           <h2 class="text-2xl font-bold text-white">Maintenance</h2>
-          <p class="text-sm text-zinc-400">View service history</p>
+          <p class="text-sm text-zinc-400">View service history by vehicle</p>
         </div>
         <span class="text-3xl">🔩</span>
       </button>

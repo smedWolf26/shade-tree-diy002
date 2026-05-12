@@ -9,16 +9,7 @@ const { vehicles, addVehicle, removeVehicle } = useGarage()
 const showForm = ref(false)
 const confirmDeleteId = ref(null)
 
-const emptyForm = () => ({
-  year: '',
-  make: '',
-  model: '',
-  plate: '',
-  mileage: '',
-  color: '',
-  notes: '',
-})
-
+const emptyForm = () => ({ year: '', make: '', model: '', plate: '', mileage: '' })
 const form = ref(emptyForm())
 const errors = ref({})
 
@@ -64,24 +55,12 @@ function cancelForm() {
         :key="vehicle.id"
         class="rounded-2xl border border-zinc-700 bg-zinc-800 px-6 py-5 transition hover:bg-zinc-700 hover:shadow-lg hover:shadow-blue-500/40"
       >
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-2xl font-bold text-white">
-              {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}
-            </h2>
-            <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400">
-              <span v-if="vehicle.plate">🪪 {{ vehicle.plate }}</span>
-              <span v-if="vehicle.color">🎨 {{ vehicle.color }}</span>
-              <span v-if="vehicle.mileage">📍 {{ vehicle.mileage }} mi</span>
-            </div>
-            <p
-              v-if="vehicle.notes"
-              class="mt-2 text-sm text-zinc-500 italic"
-            >
-              "{{ vehicle.notes }}"
-            </p>
-          </div>
-          <span class="text-3xl">🚗</span>
+        <h2 class="text-2xl font-bold text-white">
+          {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}
+        </h2>
+        <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400">
+          <span v-if="vehicle.plate">🪪 {{ vehicle.plate }}</span>
+          <span v-if="vehicle.mileage">📍 {{ vehicle.mileage }} mi</span>
         </div>
 
         <div class="mt-4 flex gap-2">
@@ -230,27 +209,6 @@ function cancelForm() {
               class="rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2.5 text-sm text-white transition outline-none placeholder:text-zinc-600 focus:border-blue-500"
             />
           </div>
-
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold tracking-widest text-zinc-400 uppercase"
-              >Color</label
-            >
-            <input
-              v-model="form.color"
-              placeholder="Midnight Black"
-              class="rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2.5 text-sm text-white transition outline-none placeholder:text-zinc-600 focus:border-blue-500"
-            />
-          </div>
-        </div>
-
-        <div class="mt-4 flex flex-col gap-1">
-          <label class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">Notes</label>
-          <textarea
-            v-model="form.notes"
-            rows="2"
-            placeholder="Any notes about this vehicle..."
-            class="resize-none rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2.5 text-sm text-white transition outline-none placeholder:text-zinc-600 focus:border-blue-500"
-          />
         </div>
 
         <div class="mt-5 flex gap-3">

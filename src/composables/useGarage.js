@@ -1,26 +1,17 @@
 import { ref } from 'vue'
 
+export const SERVICE_TYPES = [
+  { label: 'Oil Change', icon: '🛢️' },
+  { label: 'Tire Rotation', icon: '🔄' },
+  { label: 'Air Filter', icon: '💨' },
+  { label: 'Other', icon: '🔧' },
+]
+
+export const typeIcon = (type) => SERVICE_TYPES.find((s) => s.label === type)?.icon ?? '🔧'
+
 const vehicles = ref([
-  {
-    id: 1,
-    year: '2018',
-    make: 'Toyota',
-    model: 'Tacoma',
-    plate: 'TXK-4821',
-    mileage: '74,200',
-    color: 'Cement Gray',
-    notes: 'Daily driver. Needs alignment check.',
-  },
-  {
-    id: 2,
-    year: '2005',
-    make: 'Ford',
-    model: 'Mustang GT',
-    plate: 'TXM-0042',
-    mileage: '112,500',
-    color: 'Torch Red',
-    notes: 'Weekend project car.',
-  },
+  { id: 1, year: '2018', make: 'Toyota', model: 'Tacoma', plate: 'TXK-4821', mileage: '74,200' },
+  { id: 2, year: '2005', make: 'Ford', model: 'Mustang GT', plate: 'TXM-0042', mileage: '112,500' },
 ])
 
 const maintenanceLogs = ref({
@@ -39,8 +30,15 @@ const maintenanceLogs = ref({
   ],
 })
 
+const reminders = ref([
+  { id: 1, vehicleId: 1, type: 'Oil Change', dueMileage: '77,000', notes: '' },
+  { id: 2, vehicleId: 1, type: 'Tire Rotation', dueMileage: '80,000', notes: '' },
+  { id: 3, vehicleId: 2, type: 'Other', dueMileage: '115,000', notes: 'Check brake pads.' },
+])
+
 let nextVehicleId = 3
 let nextLogId = 4
+let nextReminderId = 4
 
 export function useGarage() {
   function addVehicle(vehicle) {
@@ -52,6 +50,7 @@ export function useGarage() {
   function removeVehicle(id) {
     vehicles.value = vehicles.value.filter((v) => v.id !== id)
     delete maintenanceLogs.value[id]
+    reminders.value = reminders.value.filter((r) => r.vehicleId !== id)
   }
 
   function getVehicleById(id) {
@@ -74,6 +73,14 @@ export function useGarage() {
     maintenanceLogs.value[id] = maintenanceLogs.value[id].filter((l) => l.id !== logId)
   }
 
+  function addReminder(reminder) {
+    reminders.value.push({ ...reminder, id: nextReminderId++ })
+  }
+
+  function removeReminder(id) {
+    reminders.value = reminders.value.filter((r) => r.id !== id)
+  }
+
   return {
     vehicles,
     addVehicle,
@@ -82,5 +89,8 @@ export function useGarage() {
     getLogsForVehicle,
     addLog,
     removeLog,
+    reminders,
+    addReminder,
+    removeReminder,
   }
 }
