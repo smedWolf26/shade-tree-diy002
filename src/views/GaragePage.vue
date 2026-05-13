@@ -1,43 +1,64 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useGarage } from '@/composables/useGarage'
+import { useGarageStore } from '@/stores/useGarageStore'
 
 const router = useRouter()
-const { vehicles, addVehicle, removeVehicle } = useGarage()
+const store  = useGarageStore()
+const { vehicles, loading } = store
 
-const showForm = ref(false)
+const showForm        = ref(false)
 const confirmDeleteId = ref(null)
+const submitError     = ref('')
 
 const emptyForm = () => ({ year: '', make: '', model: '', plate: '', mileage: '' })
-const form = ref(emptyForm())
+const form   = ref(emptyForm())
 const errors = ref({})
+
+onMounted(() => store.fetchVehicles())
 
 function validate() {
   errors.value = {}
   if (!form.value.year || !/^\d{4}$/.test(form.value.year))
     errors.value.year = 'Enter a valid 4-digit year.'
-  if (!form.value.make.trim()) errors.value.make = 'Make is required.'
+  if (!form.value.make.trim())  errors.value.make  = 'Make is required.'
   if (!form.value.model.trim()) errors.value.model = 'Model is required.'
   return Object.keys(errors.value).length === 0
 }
 
-function submitVehicle() {
+async function submitVehicle() {
   if (!validate()) return
-  addVehicle({ ...form.value })
-  form.value = emptyForm()
-  showForm.value = false
+  submitError.value = ''
+  try {
+    await store.addVehicle({ ...form.value })
+    form.value = emptyForm()
+    showForm.value = false
+  } catch (e) {
+    submitError.value = e.message
+  }
+}
+
+async function removeVehicle(id) {
+  try {
+    await store.removeVehicle(id)
+    confirmDeleteId.value = null
+  } catch (e) {
+    submitError.value = e.message
+  }
 }
 
 function cancelForm() {
   form.value = emptyForm()
   errors.value = {}
+  submitError.value = ''
   showForm.value = false
 }
 </script>
 
 <template>
   <main class="min-h-screen bg-black px-6 py-10 text-white">
+
+    <!-- Header -->
     <header class="mb-12 flex items-center justify-center gap-3">
       <div class="text-center">
         <h1 class="text-3xl font-black tracking-tight text-white">SHADE TREE DIY</h1>
@@ -50,6 +71,21 @@ function cancelForm() {
     </header>
 
     <div class="mx-auto flex max-w-md flex-col gap-4">
+
+      <!-- Loading -->
+      <div v-if="loading" class="py-16 text-center text-zinc-500">
+        Loading your garage...
+      </div>
+
+      <!-- Error -->
+      <div
+        v-if="submitError"
+        class="rounded-xl border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-400"
+      >
+        {{ submitError }}
+      </div>
+
+      <!-- Vehicle Cards -->
       <div
         v-for="vehicle in vehicles"
         :key="vehicle.id"
@@ -63,6 +99,7 @@ function cancelForm() {
           <span v-if="vehicle.mileage">📍 {{ vehicle.mileage }} mi</span>
         </div>
 
+        <!-- Actions -->
         <div class="mt-4 flex gap-2">
           <button
             class="flex-1 rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-600 hover:shadow-md hover:shadow-blue-500/30 active:scale-95"
@@ -71,6 +108,7 @@ function cancelForm() {
             Maintenance →
           </button>
 
+          <!-- Idle -->
           <button
             v-if="confirmDeleteId !== vehicle.id"
             class="rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-400 transition hover:border-red-600 hover:text-red-400 active:scale-95"
@@ -79,13 +117,11 @@ function cancelForm() {
             ✕
           </button>
 
-          <div
-            v-else
-            class="flex gap-1"
-          >
+          <!-- Confirm -->
+          <div v-else class="flex gap-1">
             <button
               class="rounded-xl border border-red-600 bg-red-600/20 px-3 py-2 text-xs font-bold text-red-400 transition hover:bg-red-600 hover:text-white active:scale-95"
-              @click="(removeVehicle(vehicle.id), (confirmDeleteId = null))"
+              @click="removeVehicle(vehicle.id)"
             >
               Yes
             </button>
@@ -99,8 +135,9 @@ function cancelForm() {
         </div>
       </div>
 
+      <!-- Empty state -->
       <div
-        v-if="vehicles.length === 0"
+        v-if="!loading && vehicles.length === 0"
         class="rounded-2xl border border-dashed border-zinc-700 py-16 text-center text-zinc-500"
       >
         <p class="text-4xl">🚗</p>
@@ -108,6 +145,7 @@ function cancelForm() {
         <p class="text-sm">Add your first ride below.</p>
       </div>
 
+      <!-- Add Vehicle Toggle -->
       <button
         v-if="!showForm"
         class="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-600 py-5 text-zinc-400 transition hover:border-blue-500 hover:text-blue-400 hover:shadow-lg hover:shadow-blue-500/20"
@@ -117,6 +155,7 @@ function cancelForm() {
         <span class="font-semibold">Add a Vehicle</span>
       </button>
 
+      <!-- Inline Add Form -->
       <div
         v-if="showForm"
         class="rounded-2xl border border-zinc-700 bg-zinc-800 px-6 py-5"
@@ -125,88 +164,54 @@ function cancelForm() {
 
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold tracking-widest text-zinc-400 uppercase"
-              >Year *</label
-            >
+            <label class="text-xs font-semibold uppercase tracking-widest text-zinc-400">Year *</label>
             <input
               v-model="form.year"
               maxlength="4"
               placeholder="2024"
-              class="rounded-xl border px-4 py-2.5 text-sm text-white transition outline-none placeholder:text-zinc-600"
-              :class="
-                errors.year
-                  ? 'border-red-500 bg-red-950/20'
-                  : 'border-zinc-600 bg-zinc-700 focus:border-blue-500'
-              "
+              class="rounded-xl border px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-zinc-600"
+              :class="errors.year ? 'border-red-500 bg-red-950/20' : 'border-zinc-600 bg-zinc-700 focus:border-blue-500'"
             />
-            <span
-              v-if="errors.year"
-              class="text-xs text-red-400"
-              >{{ errors.year }}</span
-            >
+            <span v-if="errors.year" class="text-xs text-red-400">{{ errors.year }}</span>
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold tracking-widest text-zinc-400 uppercase"
-              >Make *</label
-            >
+            <label class="text-xs font-semibold uppercase tracking-widest text-zinc-400">Make *</label>
             <input
               v-model="form.make"
               placeholder="Toyota"
-              class="rounded-xl border px-4 py-2.5 text-sm text-white transition outline-none placeholder:text-zinc-600"
-              :class="
-                errors.make
-                  ? 'border-red-500 bg-red-950/20'
-                  : 'border-zinc-600 bg-zinc-700 focus:border-blue-500'
-              "
+              class="rounded-xl border px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-zinc-600"
+              :class="errors.make ? 'border-red-500 bg-red-950/20' : 'border-zinc-600 bg-zinc-700 focus:border-blue-500'"
             />
-            <span
-              v-if="errors.make"
-              class="text-xs text-red-400"
-              >{{ errors.make }}</span
-            >
+            <span v-if="errors.make" class="text-xs text-red-400">{{ errors.make }}</span>
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold tracking-widest text-zinc-400 uppercase"
-              >Model *</label
-            >
+            <label class="text-xs font-semibold uppercase tracking-widest text-zinc-400">Model *</label>
             <input
               v-model="form.model"
               placeholder="Tacoma"
-              class="rounded-xl border px-4 py-2.5 text-sm text-white transition outline-none placeholder:text-zinc-600"
-              :class="
-                errors.model
-                  ? 'border-red-500 bg-red-950/20'
-                  : 'border-zinc-600 bg-zinc-700 focus:border-blue-500'
-              "
+              class="rounded-xl border px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-zinc-600"
+              :class="errors.model ? 'border-red-500 bg-red-950/20' : 'border-zinc-600 bg-zinc-700 focus:border-blue-500'"
             />
-            <span
-              v-if="errors.model"
-              class="text-xs text-red-400"
-              >{{ errors.model }}</span
-            >
+            <span v-if="errors.model" class="text-xs text-red-400">{{ errors.model }}</span>
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold tracking-widest text-zinc-400 uppercase"
-              >License Plate</label
-            >
+            <label class="text-xs font-semibold uppercase tracking-widest text-zinc-400">License Plate</label>
             <input
               v-model="form.plate"
               placeholder="TXK-0000"
-              class="rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2.5 text-sm text-white transition outline-none placeholder:text-zinc-600 focus:border-blue-500"
+              class="rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-blue-500"
             />
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold tracking-widest text-zinc-400 uppercase"
-              >Mileage</label
-            >
+            <label class="text-xs font-semibold uppercase tracking-widest text-zinc-400">Mileage</label>
             <input
               v-model="form.mileage"
               placeholder="45,000"
-              class="rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2.5 text-sm text-white transition outline-none placeholder:text-zinc-600 focus:border-blue-500"
+              class="rounded-xl border border-zinc-600 bg-zinc-700 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-blue-500"
             />
           </div>
         </div>
@@ -226,6 +231,7 @@ function cancelForm() {
           </button>
         </div>
       </div>
+
     </div>
   </main>
 </template>

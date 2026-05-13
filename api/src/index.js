@@ -1,0 +1,75 @@
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { rateLimiter } from 'hono-rate-limiter'
+
+import auth      from './routes/auth.js'
+import vehicles  from './routes/vehicles.js'
+import logs      from './routes/logs.js'
+import reminders from './routes/reminders.js'
+
+import { authenticate } from './middleware/authenticate.js'
+import { isApiError }   from './utils/errors.js'
+import { sendError }    from './utils/response.js'
+
+const app = new Hono()
+const api = new Hono()
+
+// ── Trace ID ──────────────────────────────────────────────────
+app.use('*', async (c, next) => {
+  c.set('traceId', crypto.randomUUID())
+  await next()
+})
+
+// ── Rate limiting ─────────────────────────────────────────────
+app.use(
+  rateLimiter({
+    binding:      (c) => c.env.AUTH_LIMITER,
+    keyGenerator: (c) => c.req.header('cf-connecting-ip') ?? '',
+    message: (c) => ({
+      error: {
+        code:     'TOO_MANY_REQUESTS',
+        message:  'Too many requests, please try again later.',
+        details:  [],
+        trace_id: c.get('traceId'),
+      },
+    }),
+  }),
+)
+
+// ── CORS ──────────────────────────────────────────────────────
+app.use(
+  '/api/*',
+  cors({
+    origin: (origin, c) => {
+      const allowed = c.env.ALLOWED_ORIGINS?.split(',').map((o) => o.trim()) ?? []
+      return allowed.includes(origin) ? origin : null
+    },
+    allowMethods:  ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowHeaders:  ['Content-Type', 'Authorization'],
+    credentials:   true,
+  }),
+)
+
+// ── Public routes ─────────────────────────────────────────────
+api.route('/auth', auth)
+
+// ── Protected routes ──────────────────────────────────────────
+api.use('*', authenticate)
+api.route('/vehicles',  vehicles)
+api.route('/logs',      logs)
+api.route('/reminders', reminders)
+
+app.route('/api', api)
+
+// ── 404 & error handler ───────────────────────────────────────
+app.notFound((c) => sendError(c, 404, 'NOT_FOUND', 'Route not found.'))
+
+app.onError((error, c) => {
+  if (isApiError(error)) {
+    return sendError(c, error.status, error.code, error.message, error.details)
+  }
+  console.error('Unhandled error:', error)
+  return sendError(c, 500, 'INTERNAL_SERVER_ERROR', 'An unexpected server error occurred.')
+})
+
+export default app

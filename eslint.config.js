@@ -1,19 +1,20 @@
 import js from '@eslint/js'
+import globals from 'globals'
 import pluginVue from 'eslint-plugin-vue'
-import eslintConfigPrettier from 'eslint-config-prettier'
 
 export default [
-  {
-    name: 'app/files-to-lint',
-    files: ['**/*.{js,mjs,jsx,vue}'],
-  },
-
-  {
-    name: 'app/files-to-ignore',
-    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/node_modules/**'],
-  },
-
   js.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
-  eslintConfigPrettier,
+  {
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.browser,
+      },
+    },
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
 ]

@@ -1,0 +1,22 @@
+{
+  "name": "shade-tree-diy-api",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply shade-tree-diy --local",
+    "db:migrate:remote": "wrangler d1 migrations apply shade-tree-diy --remote"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.8",
+    "hono-rate-limiter": "^0.5.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10",
+    "wrangler": "^4.4.0"
+  }
+}
